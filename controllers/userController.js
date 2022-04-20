@@ -3,7 +3,7 @@ const User = require('./../models/userModel');
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await User.find();
-    if (!users) throw new Error('Can not find users!');
+    if (users.length === 0) throw new Error('Can not find users!');
 
     res.status(200).json({
       status: 'sucess',
@@ -20,14 +20,7 @@ exports.getAllUsers = async (req, res) => {
 
 exports.createUser = async (req, res) => {
   try {
-    const { name, email, password, passwordConfirm } = req.body;
-    const user = new User({
-      name,
-      email,
-      password,
-      passwordConfirm,
-    });
-
+    const user = new User(req.body);
     await user.save();
 
     res.status(201).json({

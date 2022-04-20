@@ -1,17 +1,21 @@
 const mongoose = require('mongoose');
+const validator = require('validator');
 
 const projectSchema = mongoose.Schema(
   {
     title: {
       type: String,
+      required: [true, 'Project name is required!'],
       trim: true,
-      required: [true, 'Project name is required'],
     },
     code: {
       type: String,
-      trim: true,
       unique: true,
-      require: [true, 'Project code is required'],
+      required: [true, 'Project code is required@'],
+      validate: [
+        validator.isAlphanumeric,
+        'Project code must contain only AlphaNumberc!',
+      ],
     },
     description: {
       type: String,

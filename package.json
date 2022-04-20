@@ -1,7 +1,7 @@
 {
   "name": "Supervised_Project_Management",
   "version": "1.0.0",
-  "description": "Web Application with Node.js, Express famework, mongoDB, mongoose, ...",
+  "description": "A Supervised Project Management App for Schools and Universities. Web Application with Node.js, Express famework, mongoDB, mongoose, ...",
   "main": "server.js",
   "scripts": {
     "start": "node server.js.js",
