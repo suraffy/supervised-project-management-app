@@ -1,0 +1,31 @@
+{
+  "name": "Supervised_Project_Management",
+  "version": "1.0.0",
+  "description": "Web Application with Node.js, Express famework, mongoDB, mongoose, ...",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js.js",
+    "dev": "nodemon server.js.js"
+  },
+  "author": "Surafel Araya",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "mongoose": "^5.12.10",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^8.5.1",
+    "hbs": "^4.1.1",
+    "request": "^2.88.2",
+    "validator": "^13.1.1",
+    "cors": "^2.8.5",
+    "formidable": "^1.2.2",
+    "multer": "^1.4.2"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.7"
+  },
+  "keywords": [],
+  "engines": {
+    "node": ">10.0.0"
+  }
+}
