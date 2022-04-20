@@ -37,9 +37,9 @@ const projectSchema = mongoose.Schema(
         ref: 'User',
       },
     ],
-    private: {
+    public: {
       type: Boolean,
-      default: true,
+      default: false,
     },
     tasks: [
       {

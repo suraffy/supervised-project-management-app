@@ -1,10 +1,16 @@
 const mongoose = require('mongoose');
+const validator = require('validator');
 
 const taskSchema = mongoose.Schema(
   {
-    title: {
+    code: {
       type: String,
-      trim: true,
+      unique: true,
+      required: [true, 'taskCode is required!'],
+      validate: [
+        validator.isAlphanumeric,
+        'taskCode must contain only Letters or digits!',
+      ],
     },
     description: {
       type: String,

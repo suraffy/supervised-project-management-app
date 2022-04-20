@@ -38,7 +38,8 @@ exports.createUser = async (req, res) => {
 
 exports.getUser = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
+    const email = req.params.email;
+    const user = await User.findOne({ email });
     if (!user) throw new Error('Can not find the user!');
 
     res.status(200).json({
@@ -53,9 +54,11 @@ exports.getUser = async (req, res) => {
   }
 };
 
-exports.updateUser = async (req, res) => {
+exports.updateUserRole = async (req, res) => {
   try {
-    const user = await User.findByIdAndUpdate(req.params.id, req.body, {
+    const email = req.params.email;
+    const role = req.body.role;
+    const user = await User.findOneAndUpdate({ email }, role, {
       new: true,
       runValidators: true,
     });
@@ -75,7 +78,8 @@ exports.updateUser = async (req, res) => {
 
 exports.deleteUser = async (req, res) => {
   try {
-    const user = await User.findByIdAndRemove(req.params.id);
+    const email = req.params.email;
+    const user = await User.findOneAndDelete({ email });
     if (!user) throw new Error('Can not find the user!');
 
     res.status(204).json({
