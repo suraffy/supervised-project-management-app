@@ -3,7 +3,11 @@ const app = require('./app');
 
 const url = 'mongodb://localhost/spm';
 mongoose
-  .connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
+  .connect(url, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useFindAndModify: false,
+  })
   .then(() => console.log('DB connection successful'))
   .catch((err) => console.log(err));
 

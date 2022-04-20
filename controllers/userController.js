@@ -66,6 +66,7 @@ exports.updateUser = async (req, res) => {
       new: true,
       runValidators: true,
     });
+    if (!user) throw new Error('Can not find the user!');
 
     res.status(200).json({
       status: 'success',
@@ -81,7 +82,8 @@ exports.updateUser = async (req, res) => {
 
 exports.deleteUser = async (req, res) => {
   try {
-    await User.findByIdAndDelete(req.params.id);
+    const user = await User.findByIdAndRemove(req.params.id);
+    if (!user) throw new Error('Can not find the user!');
 
     res.status(204).json({
       status: 'success',
