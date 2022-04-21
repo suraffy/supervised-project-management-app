@@ -18,24 +18,6 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
-exports.createUser = async (req, res) => {
-  try {
-    const user = new User(req.body);
-    await user.save();
-
-    res.status(201).json({
-      status: 'success',
-      message: 'a new user created',
-      user,
-    });
-  } catch (err) {
-    res.status(400).json({
-      status: 'fail',
-      message: err.message,
-    });
-  }
-};
-
 exports.getUser = async (req, res) => {
   try {
     const email = req.params.email;
@@ -58,12 +40,15 @@ exports.updateUserRole = async (req, res) => {
   try {
     const email = req.params.email;
     const role = req.body.role;
-    const user = await User.findOneAndUpdate({ email }, role, {
-      new: true,
-      runValidators: true,
-    });
+    const user = await User.findOneAndUpdate(
+      { email },
+      { role },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
     if (!user) throw new Error('Can not find the user!');
-
     res.status(200).json({
       status: 'success',
       user,
@@ -88,6 +73,62 @@ exports.deleteUser = async (req, res) => {
     });
   } catch (err) {
     res.status(404).json({
+      status: 'fail',
+      message: err.message,
+    });
+  }
+};
+
+exports.profile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    res.status(200).json({
+      status: 'success',
+      user,
+    });
+  } catch (err) {
+    res.status(404).json({
+      status: 'fail',
+      message: err.message,
+    });
+  }
+};
+
+exports.updateProfile = async (req, res) => {
+  try {
+    const { name } = req.body;
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.id,
+      { name },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    res.status(200).json({
+      status: 'success',
+      user: updatedUser,
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 'fail',
+      message: err.message,
+    });
+  }
+};
+
+exports.deleteProfile = async (req, res) => {
+  try {
+    await User.findByIdAndUpdate(req.user.id, { active: false });
+
+    res.status(204).json({
+      status: 'success',
+      user: null,
+    });
+  } catch (err) {
+    res.status(400).json({
       status: 'fail',
       message: err.message,
     });
