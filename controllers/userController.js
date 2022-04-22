@@ -40,15 +40,14 @@ exports.updateUserRole = async (req, res) => {
   try {
     const email = req.params.email;
     const role = req.body.role;
-    const user = await User.findOneAndUpdate(
-      { email },
-      { role },
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
+
+    const user = await User.findOne({ email });
     if (!user) throw new Error('Can not find the user!');
+    if (user.role === 'admin')
+      throw new Error('You can not update admins role!');
+
+    await user.update({ role }, { new: true, runValidators: true });
+
     res.status(200).json({
       status: 'success',
       user,
@@ -64,12 +63,16 @@ exports.updateUserRole = async (req, res) => {
 exports.deleteUser = async (req, res) => {
   try {
     const email = req.params.email;
-    const user = await User.findOneAndDelete({ email });
+
+    const user = await User.findOne({ email });
     if (!user) throw new Error('Can not find the user!');
+    if (user.role === 'admin') throw new Error('You can not delete an admin!');
+
+    await user.update({ active: false });
 
     res.status(204).json({
       status: 'success',
-      message: 'sucessfully deleted',
+      user: null,
     });
   } catch (err) {
     res.status(404).json({
