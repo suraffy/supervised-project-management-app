@@ -21,7 +21,9 @@ exports.getAllUsers = async (req, res) => {
 exports.getUser = async (req, res) => {
   try {
     const email = req.params.email;
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email })
+      .populate('projects')
+      .populate('participatesIn');
     if (!user) throw new Error('Can not find the user!');
 
     res.status(200).json({
@@ -84,7 +86,9 @@ exports.deleteUser = async (req, res) => {
 
 exports.profile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user.id)
+      .populate('projects')
+      .populate('participatesIn');
 
     res.status(200).json({
       status: 'success',
@@ -100,7 +104,7 @@ exports.profile = async (req, res) => {
 
 exports.updateProfile = async (req, res) => {
   try {
-    const { name } = req.body;
+    const name = req.body;
     const updatedUser = await User.findByIdAndUpdate(
       req.user.id,
       { name },

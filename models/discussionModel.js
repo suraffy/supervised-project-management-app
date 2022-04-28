@@ -4,7 +4,7 @@ const discussionSchema = mongoose.Schema(
   {
     postedBy: mongoose.Schema.Types.ObjectId,
     project: mongoose.Schema.Types.ObjectId,
-    message: { type: String, trim: true, default: 'hi' },
+    body: { type: String, trim: true, default: 'hi' },
     replays: [{ type: mongoose.Schema.Types.ObjectId }],
   },
   { timestamps: true }

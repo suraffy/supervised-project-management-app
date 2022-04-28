@@ -18,7 +18,7 @@ const taskSchema = mongoose.Schema(
     },
     assignedTo: mongoose.Schema.Types.ObjectId,
     project: mongoose.Schema.Types.ObjectId,
-    completed: {
+    done: {
       type: Boolean,
       default: false,
     },

@@ -3,55 +3,75 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
 
-const userSchema = mongoose.Schema({
-  name: {
-    type: String,
-    required: [true, 'name is required!'],
-    minlength: [3, 'a name must be at least 3 characters'],
-    maxlength: [30, 'a name can not be more than 30 characters'],
-    trim: true,
-  },
-  email: {
-    type: String,
-    unique: true,
-    required: [true, 'email is required!'],
-    lowercase: true,
-    validate: [validator.isEmail, 'Please provide a valid email!'],
-  },
-  role: {
-    type: String,
-    enum: {
-      values: ['admin', 'supervisor', 'user'],
-      message: 'role is either: admin, supervisor, or user!',
+const userSchema = mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: [true, 'name is required!'],
+      minlength: [3, 'a name must be at least 3 characters'],
+      maxlength: [30, 'a name can not be more than 30 characters'],
+      trim: true,
     },
-    default: 'user',
-  },
-  password: {
-    type: String,
-    required: [true, 'password is required!'],
-    minlength: [4, 'Password must contain at least 4 characters!'],
-    select: false,
-  },
-  passwordConfirm: {
-    type: String,
-    required: [true, 'Please confirm your password!'],
-    validate: {
-      // this works only on CREATE() and SAVE() !!
-      validator: function (password) {
-        return password === this.password;
+    email: {
+      type: String,
+      unique: true,
+      required: [true, 'email is required!'],
+      lowercase: true,
+      validate: [validator.isEmail, 'Please provide a valid email!'],
+    },
+    role: {
+      type: String,
+      enum: {
+        values: ['admin', 'supervisor', 'user'],
+        message: 'role is either: admin, supervisor, or user!',
       },
-      message: 'Passwords are not the same!',
+      default: 'user',
+    },
+    password: {
+      type: String,
+      required: [true, 'password is required!'],
+      minlength: [4, 'Password must contain at least 4 characters!'],
+      select: false,
+    },
+    passwordConfirm: {
+      type: String,
+      required: [true, 'Please confirm your password!'],
+      validate: {
+        // this works only on CREATE() and SAVE() !!
+        validator: function (password) {
+          return password === this.password;
+        },
+        message: 'Passwords are not the same!',
+      },
+    },
+    passwordChangedAt: Date,
+    passwordResetToken: String,
+    passwordResetExpires: Date,
+    active: {
+      type: Boolean,
+      default: true,
+      select: false,
     },
   },
-  passwordChangedAt: Date,
-  passwordResetToken: String,
-  passwordResetExpires: Date,
-  active: {
-    type: Boolean,
-    default: true,
-    select: false,
-  },
+  { toJSON: { virtuals: true }, toObject: { virtuals: true } }
+);
+
+userSchema.virtual('projects', {
+  ref: 'Project',
+  localField: '_id',
+  foreignField: 'owner',
 });
+
+userSchema.virtual('participatesIn', {
+  ref: 'Project',
+  localField: '_id',
+  foreignField: 'members',
+});
+
+// userSchema.pre(/^find/, function (next) {
+//   this.populate('projects').populate('members');
+//   next();
+// });
 
 // Mongoose Middleware
 userSchema.pre('save', async function (next) {
@@ -74,6 +94,15 @@ userSchema.pre(/^find/, function (next) {
   this.find({ active: true });
   next();
 });
+
+userSchema.methods.toJSON = function () {
+  const user = this;
+  const userObj = user.toObject();
+
+  delete userObj.password;
+
+  return userObj;
+};
 
 userSchema.methods.comparePassword = async function (
   userPassword,
