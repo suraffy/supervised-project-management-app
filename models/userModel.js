@@ -68,10 +68,11 @@ userSchema.virtual('participatesIn', {
   foreignField: 'members',
 });
 
-// userSchema.pre(/^find/, function (next) {
-//   this.populate('projects').populate('members');
-//   next();
-// });
+userSchema.virtual('tasks', {
+  ref: 'Task',
+  localField: '_id',
+  foreignField: 'assignedTo',
+});
 
 // Mongoose Middleware
 userSchema.pre('save', async function (next) {

@@ -12,8 +12,13 @@ const {
   getPublicProject,
 } = require('./../controllers/projectController');
 const { authenticate, restrictTo } = require('./../controllers/authController');
+const taskRouter = require('./../routes/taskRoutes');
+const discussionRouter = require('./../routes/discussionRoutes');
 
 const router = express.Router();
+
+router.use('/:projectId/tasks', taskRouter);
+router.use('/:projectId/discussions', discussionRouter);
 
 router.get('/all', authenticate, restrictTo('admin'), getAllProjects);
 router

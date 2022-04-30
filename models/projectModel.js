@@ -60,8 +60,7 @@ const projectSchema = mongoose.Schema(
     },
     completedAt: Date,
   },
-  { timestamps: true },
-  { toJSON: { virtuals: true }, toObject: { virtuals: true } }
+  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
 
 // projectSchema.pre('save', async function (next) {
@@ -72,13 +71,13 @@ const projectSchema = mongoose.Schema(
 projectSchema.virtual('tasks', {
   ref: 'Task',
   localField: '_id',
-  foreignField: 'tasks',
+  foreignField: 'project',
 });
 
 projectSchema.virtual('discussions', {
   ref: 'Discussion',
   localField: '_id',
-  foreignField: 'discussions',
+  foreignField: 'project',
 });
 
 projectSchema.pre(/^find/, function (next) {

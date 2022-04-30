@@ -1,9 +1,10 @@
-const Project = require('../models/projectModel');
-const Discussion = require('./../models/discussionModel');
+const Project = require('./../models/projectModel');
+const Replay = require('./../models/replayModel');
 
-exports.getAllDiscussions = async (req, res) => {
+exports.getAllReplays = async (req, res, next) => {
   try {
     const userId = req.user.id;
+    const discussionId = req.params.discussionId;
     const projectId = req.params.projectId;
 
     const project = await Project.findById(projectId);
@@ -17,79 +18,70 @@ exports.getAllDiscussions = async (req, res) => {
         .status(401)
         .json({ status: 'fail', message: 'You are not authorized!' });
 
-    const discussions = await Discussion.find({ project: projectId });
-    if (discussions.length === 0)
-      throw new Error('No disucssion is available!');
-
-    res.status(200).json({
-      status: 'success',
-      results: discussions.length,
-      discussions,
-    });
-  } catch (err) {
-    res.status(404).json({
-      status: 'fail',
-      message: err.message,
-    });
-  }
-};
-
-exports.getDiscussion = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const projectId = req.params.projectId;
-
-    const project = await Project.findById(projectId);
-    if (!project) throw new Error('Project not found!');
-
-    if (
-      project.owner.id !== userId &&
-      !project.members.some((el) => el.id === userId)
-    )
-      return res
-        .status(401)
-        .json({ status: 'fail', message: 'You are not authorized!' });
-
-    const discussion = await Discussion.findById(req.params.id);
-    if (!discussion) throw new Error('No disucssion is available!');
-
-    res.status(200).json({
-      status: 'success',
-      discussion,
-    });
-  } catch (err) {
-    res.status(404).json({
-      status: 'fail',
-      message: err.message,
-    });
-  }
-};
-
-exports.createDiscussion = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const projectId = req.params.projectId;
-
-    const project = await Project.findById(projectId);
-    if (!project) throw new Error('Project not found!');
-
-    if (
-      project.owner.id !== userId &&
-      !project.members.some((el) => el.id === userId)
-    )
-      return res
-        .status(401)
-        .json({ status: 'fail', message: 'You are not authorized!' });
-
-    req.body.project = projectId;
-    req.body.postedBy = userId;
-
-    const discussion = new Discussion(req.body);
-    await discussion.save();
+    const replays = await Replay.find({ discussion: discussionId });
+    if (replays.length === 0) throw new Error('No replay available!');
 
     res.status(201).json({
       status: 'success',
-      discussion,
+      results: replays.length,
+      replays,
+    });
+  } catch (err) {
+    res.status(404).json({
+      status: 'fail',
+      message: err.message,
+    });
+  }
+};
+
+exports.getReplay = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const projectId = req.params.projectId;
+
+    const project = await Project.findById(projectId);
+    if (!project) throw new Error('Project not found!');
+
+    if (
+      project.owner.id !== userId &&
+      !project.members.some((el) => el.id === userId)
+    )
+      return res
+        .status(401)
+        .json({ status: 'fail', message: 'You are not authorized!' });
+
+    const replay = await Replay.findById(req.params.id);
+    if (!replay) throw new Error('Replay not found!');
+
+    res.status(201).json({
+      status: 'success',
+      replay,
+    });
+  } catch (err) {
+    res.status(404).json({
+      status: 'fail',
+      message: err.message,
+    });
+  }
+};
+
+exports.createReplay = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const discussionId = req.params.discussionId;
+
+    req.body.replayedBy = userId;
+    req.body.discussion = discussionId;
+
+    console.log({ userId, discussionId });
+    console.log(req.body.replayedBy, req.body.discussion);
+
+    const replay = new Replay(req.body);
+    await replay.save();
+
+    res.status(201).json({
+      status: 'success',
+      replay,
     });
   } catch (err) {
     res.status(400).json({
@@ -99,7 +91,7 @@ exports.createDiscussion = async (req, res) => {
   }
 };
 
-exports.updateDiscussion = async (req, res) => {
+exports.updateReplay = async (req, res, next) => {
   try {
     const userId = req.user.id;
     const projectId = req.params.projectId;
@@ -111,23 +103,31 @@ exports.updateDiscussion = async (req, res) => {
         message: 'Project not found!',
       });
 
-    const discussion = await Discussion.findById(req.params.id);
-    if (!discussion)
-      return res
-        .status(404)
-        .json({ status: 'fail', message: 'Discussion not found!' });
-
-    if (discussion.postedBy.id !== userId)
+    if (
+      project.owner.id !== userId &&
+      !project.members.some((el) => el.id === userId)
+    )
       return res
         .status(401)
         .json({ status: 'fail', message: 'You are not authorized!' });
 
-    discussion.body = req.body.body;
-    await discussion.save();
+    const replay = await Replay.findById(req.params.id);
+    if (!replay)
+      return res
+        .status(404)
+        .json({ status: 'fail', message: 'Replay not found!' });
+
+    if (replay.replayedBy.id !== userId)
+      return res
+        .status(401)
+        .json({ status: 'fail', message: 'You are not authorized!' });
+
+    replay.body = req.body.body;
+    await replay.save();
 
     res.status(201).json({
       status: 'success',
-      discussion,
+      replay,
     });
   } catch (err) {
     res.status(400).json({
@@ -137,7 +137,7 @@ exports.updateDiscussion = async (req, res) => {
   }
 };
 
-exports.deleteDiscussion = async (req, res) => {
+exports.deleteReplay = async (req, res, next) => {
   try {
     const userId = req.user.id;
     const projectId = req.params.projectId;
@@ -149,22 +149,30 @@ exports.deleteDiscussion = async (req, res) => {
         message: 'Project not found!',
       });
 
-    const discussion = await Discussion.findById(req.params.id);
-    if (!discussion)
-      return res
-        .status(404)
-        .json({ status: 'fail', message: 'Discussion not found!' });
-
-    if (discussion.postedBy.id !== userId)
+    if (
+      project.owner.id !== userId &&
+      !project.members.some((el) => el.id === userId)
+    )
       return res
         .status(401)
         .json({ status: 'fail', message: 'You are not authorized!' });
 
-    await discussion.delete();
+    const replay = await Replay.findById(req.params.id);
+    if (!replay)
+      return res
+        .status(404)
+        .json({ status: 'fail', message: 'Replay not found!' });
+
+    if (replay.replayedBy.id !== userId)
+      return res
+        .status(401)
+        .json({ status: 'fail', message: 'You are not authorized!' });
+
+    await replay.delete();
 
     res.status(204).json({
       status: 'success',
-      discussion: null,
+      replay: null,
     });
   } catch (err) {
     res.status(500).json({

@@ -9,15 +9,21 @@ const taskSchema = mongoose.Schema(
       required: [true, 'taskCode is required!'],
       validate: [
         validator.isAlphanumeric,
-        'taskCode must contain only Letters or digits!',
+        'taskCode must contain only Letters and/or digits!',
       ],
     },
     description: {
       type: String,
       trim: true,
     },
-    assignedTo: mongoose.Schema.Types.ObjectId,
-    project: mongoose.Schema.Types.ObjectId,
+    assignedTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
+    project: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Project',
+    },
     done: {
       type: Boolean,
       default: false,
@@ -29,8 +35,16 @@ const taskSchema = mongoose.Schema(
     },
     fileUpload: String,
   },
-  { timestamps: true }
+  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
+
+taskSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: 'assignedTo',
+    select: 'name email',
+  });
+  next();
+});
 
 const Task = mongoose.model('Task', taskSchema);
 

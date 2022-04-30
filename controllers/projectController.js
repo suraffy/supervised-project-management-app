@@ -48,6 +48,7 @@ exports.getOwnProject = async (req, res) => {
       status: 'fail',
       message: err.message,
     });
+    console.log(err);
   }
 };
 
