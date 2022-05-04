@@ -10,7 +10,6 @@ const filterObj = function (obj, allowedFields) {
   return newObj;
 };
 
-// For Users
 exports.getAllDiscussions = async (req, res) => {
   try {
     const userId = req.user.id;
