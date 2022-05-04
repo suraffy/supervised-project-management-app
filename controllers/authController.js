@@ -69,7 +69,7 @@ exports.authenticate = async (req, res, next) => {
 
     const decoded = jwt.verify(token, 'secretecode');
 
-    // Change if the user is not deleted after the token has issued
+    // Check if the user is not deleted after the token has issued
     const currentUser = await User.findById(decoded.id);
     if (!currentUser) throw new Error();
 
@@ -95,7 +95,7 @@ exports.restrictTo = function (...roles) {
     } catch (err) {
       res.status(403).json({
         status: 'fail',
-        message: 'You do not have permission for this action!',
+        message: 'You do not have permission!',
       });
     }
   };

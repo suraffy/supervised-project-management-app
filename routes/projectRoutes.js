@@ -10,6 +10,8 @@ const {
   deleteProject,
   getAllPublicProjects,
   getPublicProject,
+  getAllProjectsIn,
+  getProjectIn,
 } = require('./../controllers/projectController');
 const { authenticate, restrictTo } = require('./../controllers/authController');
 const taskRouter = require('./../routes/taskRoutes');
@@ -28,6 +30,9 @@ router
 
 router.get('/public', getAllPublicProjects);
 router.get('/public/:code', getPublicProject);
+
+router.get('/projectsIn', authenticate, getAllProjectsIn);
+router.get('/projectsIn/:id', authenticate, getProjectIn);
 
 router
   .route('/')

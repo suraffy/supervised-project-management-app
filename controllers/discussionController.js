@@ -1,21 +1,26 @@
 const Project = require('../models/projectModel');
 const Discussion = require('./../models/discussionModel');
 
+const filterObj = function (obj, allowedFields) {
+  const newObj = {};
+  Object.keys(obj).forEach((prop) =>
+    allowedFields.includes(prop) ? (newObj[prop] = obj[prop]) : undefined
+  );
+
+  return newObj;
+};
+
+// For Users
 exports.getAllDiscussions = async (req, res) => {
   try {
     const userId = req.user.id;
     const projectId = req.params.projectId;
 
-    const project = await Project.findById(projectId);
+    const project = await Project.findOne({
+      _id: projectId,
+      $or: [{ owner: userId }, { members: userId }],
+    });
     if (!project) throw new Error('Project not found!');
-
-    if (
-      project.owner.id !== userId &&
-      !project.members.some((el) => el.id === userId)
-    )
-      return res
-        .status(401)
-        .json({ status: 'fail', message: 'You are not authorized!' });
 
     const discussions = await Discussion.find({ project: projectId });
     if (discussions.length === 0)
@@ -39,16 +44,11 @@ exports.getDiscussion = async (req, res) => {
     const userId = req.user.id;
     const projectId = req.params.projectId;
 
-    const project = await Project.findById(projectId);
+    const project = await Project.findOne({
+      _id: projectId,
+      $or: [{ owner: userId }, { members: userId }],
+    });
     if (!project) throw new Error('Project not found!');
-
-    if (
-      project.owner.id !== userId &&
-      !project.members.some((el) => el.id === userId)
-    )
-      return res
-        .status(401)
-        .json({ status: 'fail', message: 'You are not authorized!' });
 
     const discussion = await Discussion.findById(req.params.id);
     if (!discussion) throw new Error('No disucssion is available!');
@@ -70,21 +70,19 @@ exports.createDiscussion = async (req, res) => {
     const userId = req.user.id;
     const projectId = req.params.projectId;
 
-    const project = await Project.findById(projectId);
+    const project = await Project.findOne({
+      _id: projectId,
+      $or: [{ owner: userId }, { members: userId }],
+    });
     if (!project) throw new Error('Project not found!');
-
-    if (
-      project.owner.id !== userId &&
-      !project.members.some((el) => el.id === userId)
-    )
-      return res
-        .status(401)
-        .json({ status: 'fail', message: 'You are not authorized!' });
 
     req.body.project = projectId;
     req.body.postedBy = userId;
 
-    const discussion = new Discussion(req.body);
+    const allowedFields = ['project', 'postedBy', 'body'];
+    const filteredBody = filterObj(req.body, allowedFields);
+
+    const discussion = new Discussion(filteredBody);
     await discussion.save();
 
     res.status(201).json({
@@ -104,28 +102,23 @@ exports.updateDiscussion = async (req, res) => {
     const userId = req.user.id;
     const projectId = req.params.projectId;
 
-    const project = await Project.findById(projectId);
-    if (!project)
-      return res.status(404).json({
-        status: 'fail',
-        message: 'Project not found!',
-      });
+    const project = await Project.findOne({
+      _id: projectId,
+      $or: [{ owner: userId }, { members: userId }],
+    });
+    if (!project) throw new Error('Project not found!');
 
-    const discussion = await Discussion.findById(req.params.id);
-    if (!discussion)
-      return res
-        .status(404)
-        .json({ status: 'fail', message: 'Discussion not found!' });
+    const discussion = await Discussion.findOneAndUpdate(
+      {
+        _id: req.params.id,
+        postedBy: userId,
+      },
+      { body: req.body.body },
+      { new: true, runValidators: true }
+    );
+    if (!discussion) throw new Error('Discussion not found!');
 
-    if (discussion.postedBy.id !== userId)
-      return res
-        .status(401)
-        .json({ status: 'fail', message: 'You are not authorized!' });
-
-    discussion.body = req.body.body;
-    await discussion.save();
-
-    res.status(201).json({
+    res.status(200).json({
       status: 'success',
       discussion,
     });
@@ -142,6 +135,86 @@ exports.deleteDiscussion = async (req, res) => {
     const userId = req.user.id;
     const projectId = req.params.projectId;
 
+    const project = await Project.findOne({
+      _id: projectId,
+      $or: [{ owner: userId }, { members: userId }],
+    });
+    if (!project) throw new Error('Project not found!');
+
+    const discussion = await Discussion.findOneAndDelete({
+      _id: req.params.id,
+      postedBy: userId,
+    });
+
+    if (!discussion)
+      return res
+        .status(404)
+        .json({ status: 'fail', message: 'Discussion not found!' });
+
+    res.status(204).json({
+      status: 'success',
+      discussion: null,
+    });
+  } catch (err) {
+    res.status(500).json({
+      status: 'fail',
+      message: err.message,
+    });
+  }
+};
+
+// For Admins
+exports.getAllDiscussionsAdmin = async (req, res) => {
+  try {
+    const projectId = req.params.projectId;
+
+    const project = await Project.findById(projectId);
+    if (!project) throw new Error('Project not found!');
+
+    const discussions = await Discussion.find({ project: projectId });
+    if (discussions.length === 0)
+      throw new Error('No disucssion is available!');
+
+    res.status(200).json({
+      status: 'success',
+      results: discussions.length,
+      discussions,
+    });
+  } catch (err) {
+    res.status(404).json({
+      status: 'fail',
+      message: err.message,
+    });
+  }
+};
+
+exports.getDiscussionAdmin = async (req, res) => {
+  try {
+    const projectId = req.params.projectId;
+
+    const project = await Project.findById(projectId);
+    if (!project) throw new Error('Project not found!');
+
+    const discussion = await Discussion.findById(req.params.id);
+    if (!discussion) throw new Error('No disucssion is available!');
+
+    res.status(200).json({
+      status: 'success',
+      discussion,
+    });
+  } catch (err) {
+    res.status(404).json({
+      status: 'fail',
+      message: err.message,
+    });
+  }
+};
+
+exports.deleteDiscussionAdmin = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const projectId = req.params.projectId;
+
     const project = await Project.findById(projectId);
     if (!project)
       return res.status(404).json({
@@ -154,11 +227,6 @@ exports.deleteDiscussion = async (req, res) => {
       return res
         .status(404)
         .json({ status: 'fail', message: 'Discussion not found!' });
-
-    if (discussion.postedBy.id !== userId)
-      return res
-        .status(401)
-        .json({ status: 'fail', message: 'You are not authorized!' });
 
     await discussion.delete();
 

@@ -1,3 +1,4 @@
+const Discussion = require('../models/discussionModel');
 const Project = require('./../models/projectModel');
 const Replay = require('./../models/replayModel');
 
@@ -17,6 +18,18 @@ exports.getAllReplays = async (req, res, next) => {
       return res
         .status(401)
         .json({ status: 'fail', message: 'You are not authorized!' });
+
+    const discussion = await Discussion.findById(discussionId);
+    if (!discussion) throw new Error('Discussion not found!');
+
+    console.log('***************');
+    console.log(discussion.project.toString());
+    console.log('***************');
+
+    if (discussion.project.toString() !== projectId)
+      return res
+        .status(401)
+        .json({ status: 'fail', message: 'You are not authorized!ok' });
 
     const replays = await Replay.find({ discussion: discussionId });
     if (replays.length === 0) throw new Error('No replay available!');

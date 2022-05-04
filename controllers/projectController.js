@@ -48,7 +48,6 @@ exports.getOwnProject = async (req, res) => {
       status: 'fail',
       message: err.message,
     });
-    console.log(err);
   }
 };
 
@@ -118,6 +117,45 @@ exports.deleteOwnProject = async (req, res) => {
     if (!project) throw new Error('Can not find the project!');
 
     res.status(204).json({
+      status: 'success',
+      project,
+    });
+  } catch (err) {
+    res.status(404).json({
+      status: 'fail',
+      message: err.message,
+    });
+  }
+};
+
+// For Users, Participated in projects
+exports.getAllProjectsIn = async (req, res) => {
+  try {
+    const projects = await Project.find({ members: req.user.id });
+    if (projects.length === 0) throw new Error('No project is available!');
+
+    res.status(200).json({
+      status: 'success',
+      results: projects.length,
+      projects,
+    });
+  } catch (err) {
+    res.status(404).json({
+      status: 'fail',
+      message: err.message,
+    });
+  }
+};
+
+exports.getProjectIn = async (req, res) => {
+  try {
+    const project = await Project.findOne({
+      _id: req.params.id,
+      members: req.user.id,
+    });
+    if (!project) throw new Error('Project not found!');
+
+    res.status(200).json({
       status: 'success',
       project,
     });

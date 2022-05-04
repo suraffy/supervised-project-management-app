@@ -10,21 +10,17 @@ const filterObj = function (obj, allowedFields) {
   return newObj;
 };
 
+// All Tasks in project
 exports.getAllTasks = async (req, res) => {
   try {
     const userId = req.user.id;
     const projectId = req.params.projectId;
 
-    const project = await Project.findById(projectId);
+    const project = await Project.findOne({
+      _id: projectId,
+      $or: [{ owner: userId }, { members: userId }],
+    });
     if (!project) throw new Error('Project not found!');
-
-    if (
-      project.owner.id !== userId &&
-      !project.members.some((el) => el.id === userId)
-    )
-      return res
-        .status(401)
-        .json({ status: 'fail', message: 'You are not authorized!' });
 
     const tasks = await Task.find({ project: projectId });
     if (tasks.length === 0) throw new Error('No task is available!');
@@ -47,16 +43,11 @@ exports.getTask = async (req, res) => {
     const userId = req.user.id;
     const projectId = req.params.projectId;
 
-    const project = await Project.findById(projectId);
+    const project = await Project.findOne({
+      _id: projectId,
+      $or: [{ owner: userId }, { members: userId }],
+    });
     if (!project) throw new Error('Project not found!');
-
-    if (
-      project.owner.id !== userId &&
-      !project.members.some((el) => el.id === userId)
-    )
-      return res
-        .status(401)
-        .json({ status: 'fail', message: 'You are not authorized!' });
 
     const code = req.params.code;
     const task = await Task.findOne({ project: projectId, code });
@@ -79,16 +70,11 @@ exports.createTask = async (req, res) => {
     const userId = req.user.id;
     const projectId = req.params.projectId;
 
-    const project = await Project.findById(projectId);
+    const project = await Project.findOne({ _id: projectId, owner: userId });
     if (!project)
       return res
         .status(404)
         .json({ status: 'fail', message: 'Can not find the project!' });
-
-    if (project.owner.id !== userId)
-      return res
-        .status(401)
-        .json({ status: 'fail', message: 'You are not authorized!' });
 
     req.body.project = projectId;
 
@@ -112,16 +98,11 @@ exports.updateTask = async (req, res) => {
     const userId = req.user.id;
     const projectId = req.params.projectId;
 
-    const project = await Project.findById(projectId);
+    const project = await Project.findOne({ _id: projectId, owner: userId });
     if (!project)
       return res
         .status(404)
         .json({ status: 'fail', message: 'Project not found!' });
-
-    if (project.owner.id !== userId)
-      return res
-        .status(401)
-        .json({ status: 'fail', message: 'You are not authorized!' });
 
     const allowedFields = [
       'description',
@@ -164,16 +145,11 @@ exports.deleteTask = async (req, res) => {
     const userId = req.user.id;
     const projectId = req.params.projectId;
 
-    const project = await Project.findById(projectId);
+    const project = await Project.findOne({ _id: projectId, owner: userId });
     if (!project)
       return res
         .status(404)
         .json({ status: 'fail', message: 'Project not found!' });
-
-    if (project.owner.id !== userId)
-      return res
-        .status(401)
-        .json({ status: 'fail', message: 'You are not authorized' });
 
     const code = req.params.code;
     const task = await Task.findOneAndDelete({ project: projectId, code });
@@ -188,6 +164,47 @@ exports.deleteTask = async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({
+      status: 'fail',
+      message: err.message,
+    });
+  }
+};
+
+// Own Tasks
+exports.getAllAssignedTasks = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const tasks = await Task.find({ assignedTo: userId });
+    if (tasks.length === 0) throw new Error('You do not have a task!');
+
+    res.status(200).json({
+      status: 'success',
+      results: tasks.length,
+      tasks,
+    });
+  } catch (err) {
+    res.status(404).json({
+      status: 'fail',
+      message: err.message,
+    });
+  }
+};
+
+exports.getAssignedTask = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const id = req.params.id;
+
+    const task = await Task.findOne({ _id: id, assignedTo: userId });
+    if (!task) throw new Error('No such task is found!');
+
+    res.status(200).json({
+      status: 'success',
+      task,
+    });
+  } catch (err) {
+    res.status(404).json({
       status: 'fail',
       message: err.message,
     });

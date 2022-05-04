@@ -5,11 +5,15 @@ const {
   createTask,
   updateTask,
   deleteTask,
+  getAllAssignedTasks,
+  getAssignedTask,
 } = require('./../controllers/taskController');
 const { authenticate } = require('./../controllers/authController');
 
-// const router = express.Router();
 const router = express.Router({ mergeParams: true });
+
+router.get('/assigned', authenticate, getAllAssignedTasks);
+router.get('/assigned/:id', authenticate, getAssignedTask);
 
 router.route('/').get(authenticate, getAllTasks).post(authenticate, createTask);
 router
