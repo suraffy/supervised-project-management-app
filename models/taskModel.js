@@ -38,6 +38,9 @@ const taskSchema = mongoose.Schema(
   { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
 
+taskSchema.index({ project: 1 });
+taskSchema.index({ assignedTo: 1 });
+
 taskSchema.pre(/^find/, function (next) {
   this.populate({
     path: 'assignedTo',

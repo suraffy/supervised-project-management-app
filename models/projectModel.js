@@ -63,10 +63,7 @@ const projectSchema = mongoose.Schema(
   { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
 
-// projectSchema.pre('save', async function (next) {
-//   this.owner = await User.findById(this.owner).select('name email');
-//   next();
-// });
+projectSchema.index({ owner: 1 });
 
 projectSchema.virtual('tasks', {
   ref: 'Task',
