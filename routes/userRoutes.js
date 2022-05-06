@@ -16,6 +16,7 @@ const {
   profile,
   updateProfile,
   deleteProfile,
+  uploadProfilePicture,
 } = require('./../controllers/userController');
 
 const router = express.Router();
@@ -29,7 +30,7 @@ router.patch('/resetpassword/:token', resetPassword);
 router.patch('/updatepassword', authenticate, updatePassword);
 
 router.get('/me', authenticate, profile);
-router.patch('/updateme', authenticate, updateProfile);
+router.patch('/updateme', authenticate, uploadProfilePicture, updateProfile);
 router.delete('/deleteme', authenticate, deleteProfile);
 
 router.route('/').get(authenticate, restrictTo('admin'), getAllUsers);

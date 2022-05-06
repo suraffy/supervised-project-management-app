@@ -52,6 +52,7 @@ const userSchema = mongoose.Schema(
       default: true,
       select: false,
     },
+    profilePicture: Buffer,
   },
   { toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
@@ -101,6 +102,7 @@ userSchema.methods.toJSON = function () {
   const userObj = user.toObject();
 
   delete userObj.password;
+  delete userObj.profilePicture;
 
   return userObj;
 };

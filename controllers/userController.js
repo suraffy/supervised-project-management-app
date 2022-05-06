@@ -1,4 +1,40 @@
+const multer = require('multer');
 const User = require('./../models/userModel');
+
+const upload = multer({
+  // dest: '/public/img/user',
+  limits: {
+    filesize: 1048576,
+  },
+  fileFilter(req, file, cb) {
+    if (!file.mimetype.match(/^image/)) {
+      cb('Unsuported file format!', false);
+    }
+
+    cb(null, true);
+  },
+  // storage: multer.diskStorage({
+  //   // destination: (req, file, cb) => cb(null, './public/img/user'),
+  //   filename: (req, file, cb) => {
+  //     const ext = file.mimetype.split('/')[1];
+  //     cb(null, `user-${req.user.id}-${Date.now()}.${ext}`);
+  //   },
+  // }),
+}).single('profilePicture');
+
+// exports.uploadProfilePicture = upload.single('profilePicture');
+
+exports.uploadProfilePicture = (req, res, next) => {
+  upload(req, res, function (err) {
+    if (err)
+      return res.status(400).json({
+        status: 'fail',
+        message: err,
+      });
+
+    next();
+  });
+};
 
 exports.getAllUsers = async (req, res) => {
   try {
@@ -110,12 +146,14 @@ exports.profile = async (req, res) => {
 exports.updateProfile = async (req, res) => {
   try {
     const name = req.body.name;
+    const profilePicture = req.file.buffer;
+
     const updatedUser = await User.findByIdAndUpdate(
       req.user.id,
-      { name },
+      { name, profilePicture },
       {
         new: true,
-        runValidators: true,
+        // runValidators: true,
       }
     );
 
