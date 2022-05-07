@@ -18,6 +18,12 @@ exports.signup = async (req, res) => {
 
     const token = signToken(user._id);
 
+    res.cookie('jwt', token, {
+      expires: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+      // secure: true, // only in production with https
+      httpOnly: true,
+    });
+
     res.status(201).json({
       status: 'success',
       token,
@@ -46,6 +52,12 @@ exports.login = async (req, res) => {
 
     const token = signToken(user._id);
 
+    res.cookie('jwt', token, {
+      expires: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+      // secure: true, // only in production with https
+      httpOnly: true,
+    });
+
     res.status(200).json({
       status: 'success',
       token,
@@ -61,10 +73,12 @@ exports.login = async (req, res) => {
 
 exports.authenticate = async (req, res, next) => {
   try {
-    const rha = req.headers.authorization;
+    let rha = req.headers.authorization;
+    rha = rha && rha.startsWith('Bearer ') ? rha.split(' ')[1] : undefined;
+    let rhc = req.headers.cookie;
+    rhc = rhc ? rhc.split('=')[1] : undefined;
 
-    const token =
-      rha && rha.startsWith('Bearer ') ? rha.split(' ')[1] : undefined;
+    const token = rha ? rha : rhc;
     if (!token) throw new Error();
 
     const decoded = jwt.verify(token, 'secretecode');
@@ -150,6 +164,12 @@ exports.resetPassword = async (req, res, next) => {
 
     const token = signToken(user._id);
 
+    res.cookie('jwt', token, {
+      expires: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+      // secure: true, // only in production with https
+      httpOnly: true,
+    });
+
     res.status(200).json({
       status: 'success',
       token,
@@ -178,6 +198,12 @@ exports.updatePassword = async (req, res) => {
     await user.save();
 
     const token = signToken(user.id);
+
+    res.cookie('jwt', token, {
+      expires: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+      // secure: true, // only in production with https
+      httpOnly: true,
+    });
 
     res.status(200).json({
       status: 'success',
